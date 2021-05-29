@@ -18,7 +18,7 @@ type ChatRoom = chatroom.ChatRoom
 
 type Member = chatroom.Member
 
-type ChatRooms map[uint8]ChatRoom
+type ChatRooms map[uint32]ChatRoom
 
 var chatRooms ChatRooms
 
@@ -34,7 +34,7 @@ func (mango) AddRoom(room ChatRoom) error {
 	return nil
 }
 
-func (mango) DeleteRoom(roomId uint8) error {
+func (mango) DeleteRoom(roomId uint32) error {
 	if _, ok := chatRooms[roomId]; ok == false {
 		return errors.New("ChatRoom not found")
 	}
@@ -42,7 +42,7 @@ func (mango) DeleteRoom(roomId uint8) error {
 	return errors.New("ChatRoom not found")
 }
 
-func (mango) AddUser(roomId uint8, member Member) error {
+func (mango) AddUser(roomId uint32, member Member) error {
 
 	if _, ok := chatRooms[roomId]; ok == false {
 		return errors.New("ChatRoom not found")
@@ -56,7 +56,7 @@ func (mango) AddUser(roomId uint8, member Member) error {
 	return nil
 }
 
-func (mango) RemoveUser(roomId uint8, member Member) error {
+func (mango) RemoveUser(roomId uint32, member Member) error {
 
 	if _, ok := chatRooms[roomId]; ok == false {
 		return errors.New("ChatRoom not found")
