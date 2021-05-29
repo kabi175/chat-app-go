@@ -1,4 +1,4 @@
-# chat-app-go
+# chat-app
 A simple real-time chat app with golang
 
 Features:
