@@ -3,8 +3,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -17,36 +15,39 @@ import (
 
 type server struct {
 	appServer *http.Server
+	handler   handler
 }
 
 func New() *server {
 	return &server{}
 }
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	type User struct {
-		User     string `json:"user"`
-		Password string `json:"password"`
-	}
-	var user User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		http.Error(w, "Unable to login", http.StatusNotAcceptable)
-	}
-	fmt.Println(user)
-	w.Write([]byte("Secreg key"))
-	return
-}
-
-func (s *server) Start(addr string) {
+func (s *server) config() {
 
 	router := mux.NewRouter()
-	router.HandleFunc("/login", hello).Methods("POST")
-	router.HandleFunc("/ws", wsHandler)
 
-	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
-	methods := handlers.AllowedMethods([]string{"GET", "POST"})
-	origns := handlers.AllowedOrigins([]string{"*"})
+	headers := handlers.AllowedHeaders(
+		[]string{
+			"X-Requested-With",
+			"Content-Type",
+			"Authorization",
+		},
+	)
+
+	methods := handlers.AllowedMethods(
+		[]string{
+			"GET",
+			"POST",
+		},
+	)
+
+	origns := handlers.AllowedOrigins(
+		[]string{
+			"*",
+		},
+	)
+
+	addr := os.Getenv("adderss")
 
 	s.appServer = &http.Server{
 		Addr:         addr,
@@ -55,6 +56,17 @@ func (s *server) Start(addr string) {
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
 	}
+}
+
+func (s *server) routes(router mux.Router) {
+
+	router.HandleFunc("/ws", s.handler.Upgrader)
+	router.HandleFunc("/login", s.handler.Login)
+
+}
+
+func (s *server) Start(addr string) {
+
 	go s.ShutDown()
 
 	log.Println("started serving on ", addr)
