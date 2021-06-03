@@ -10,22 +10,18 @@ const (
 	echoBuff = 4 // maximum messages that can be sent to the roomEcho
 )
 
-type Service interface {
-	Send(UserId, Message)
-}
-
-type RoomID string
+type RoomId string
 
 type Room struct {
 	mutex    sync.Mutex
-	name     RoomID
+	name     RoomId
 	admin    UserId
 	members  []UserId
 	echoChnl chan Message
 	service  Service
 }
 
-func Create(name RoomID, admin UserId, service Service) *Room {
+func CreateRoom(name RoomId, admin UserId, service Service) *Room {
 	return &Room{
 		mutex:    sync.Mutex{},
 		name:     name,
@@ -34,6 +30,10 @@ func Create(name RoomID, admin UserId, service Service) *Room {
 		echoChnl: make(chan Message, echoBuff),
 		service:  service,
 	}
+}
+
+func (r *Room) Id() RoomId {
+	return r.name
 }
 
 func (r *Room) Join(memberId UserId) error {
@@ -75,10 +75,14 @@ func (r *Room) Echo() {
 		r.mutex.Lock()
 
 		for _, memberId := range r.members {
-			r.service.Send(memberId, msg)
+			r.service.SendMessage(memberId, msg)
 		}
 
 		r.mutex.Unlock()
 
 	}
+}
+
+func (r *Room) Consume(message Message) {
+	r.echoChnl <- message
 }
