@@ -1,5 +1,4 @@
-// Package server provides app-server
-package server
+package http
 
 import (
 	"context"
@@ -15,17 +14,17 @@ import (
 
 type server struct {
 	appServer *http.Server
-	handler   handler
+	handler   Handler
 }
 
-func New() *server {
-	return &server{}
+func New(handler Handler) *server {
+	return &server{handler: handler}
 }
 
 func (s *server) config() {
 
 	router := mux.NewRouter()
-
+	s.routes(router)
 	headers := handlers.AllowedHeaders(
 		[]string{
 			"X-Requested-With",
@@ -58,7 +57,7 @@ func (s *server) config() {
 	}
 }
 
-func (s *server) routes(router mux.Router) {
+func (s *server) routes(router *mux.Router) {
 
 	router.HandleFunc("/ws", s.handler.Upgrader)
 	router.HandleFunc("/login", s.handler.Login)

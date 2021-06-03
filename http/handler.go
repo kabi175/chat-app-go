@@ -1,4 +1,4 @@
-package server
+package http
 
 import (
 	"encoding/json"
@@ -9,15 +9,14 @@ import (
 	"github.com/kabi175/chat-app-go/domain"
 )
 
-type Service interface {
-	Validate(string) (domain.UserId, error)
-	CreateUser(domain.UserId, *websocket.Conn)
-	ForwardMessage(domain.Message)
-	LogIn(string, string)
-}
-
 type handler struct {
 	service Service
+}
+
+func NewHandler(service Service) handler {
+	return handler{
+		service: service,
+	}
 }
 
 func (h handler) Login(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +35,6 @@ func (h handler) Upgrader(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		userId domain.UserId
-		err    error
 	)
 
 	upgrader := websocket.Upgrader{
@@ -52,8 +50,12 @@ func (h handler) Upgrader(w http.ResponseWriter, r *http.Request) {
 	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
 	defer conn.Close()
-	h.service.CreateUser(userId, conn)
+
+	h.service.SpinUser(userId, conn)
 
 	var msg domain.Message
 
@@ -65,7 +67,7 @@ func (h handler) Upgrader(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			return
 		}
-		h.service.ForwardMessage(msg)
+		h.service.ConsumeMessage(msg)
 
 	}
 }
