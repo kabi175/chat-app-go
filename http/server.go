@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -17,11 +18,11 @@ type server struct {
 	handler   Handler
 }
 
-func New(handler Handler) *server {
+func NewServer(handler Handler) *server {
 	return &server{handler: handler}
 }
 
-func (s *server) config() {
+func (s *server) Config(addr string) {
 
 	router := mux.NewRouter()
 	s.routes(router)
@@ -32,7 +33,7 @@ func (s *server) config() {
 			"Authorization",
 		},
 	)
-
+	fmt.Println("Started serving on", addr)
 	methods := handlers.AllowedMethods(
 		[]string{
 			"GET",
@@ -46,8 +47,6 @@ func (s *server) config() {
 		},
 	)
 
-	addr := os.Getenv("adderss")
-
 	s.appServer = &http.Server{
 		Addr:         addr,
 		Handler:      handlers.CORS(headers, methods, origns)(router),
@@ -59,16 +58,16 @@ func (s *server) config() {
 
 func (s *server) routes(router *mux.Router) {
 
-	router.HandleFunc("/ws", s.handler.Upgrader)
-	router.HandleFunc("/login", s.handler.Login)
-
+	router.HandleFunc("/chat", s.handler.Upgrader)
+	router.HandleFunc("/user/login", s.handler.Login)
+	router.HandleFunc("/user/signup", s.handler.SignUp)
+	router.HandleFunc("/room/create", s.handler.CreateRoom)
+	router.HandleFunc("/room/join", s.handler.JoinRoom)
 }
 
-func (s *server) Start(addr string) {
+func (s *server) Start() {
 
 	go s.ShutDown()
-
-	log.Println("started serving on ", addr)
 
 	err := s.appServer.ListenAndServe()
 
