@@ -1,7 +1,7 @@
 package domain
 
 type Message struct {
-	Text       string
-	SenderId   UserId
-	ReceiverId RoomId
+	Text       string `json:"Text"`
+	SenderId   UserId `json:"SenderId"`
+	ReceiverId RoomId `json:"ReceiverId"`
 }

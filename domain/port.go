@@ -1,5 +1,5 @@
 package domain
 
 type Service interface {
-	SendMessage(UserId, Message)
+	SendMessage(UserId, Message) error
 }

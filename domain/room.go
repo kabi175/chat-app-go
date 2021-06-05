@@ -73,7 +73,6 @@ func (r *Room) Echo() {
 		msg = <-r.echoChnl
 
 		r.mutex.Lock()
-
 		for _, memberId := range r.members {
 			r.service.SendMessage(memberId, msg)
 		}
