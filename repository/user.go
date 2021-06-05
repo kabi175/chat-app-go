@@ -5,7 +5,8 @@ import (
 	"github.com/kabi175/chat-app-go/domain"
 )
 
-func (s *service) SpinUser(userId domain.UserId, conn *websocket.Conn) {
+func (s *service) SpinUser(userId domain.UserId, conn *websocket.Conn) error {
 	user := domain.NewUser(userId, conn)
-	s.datasource.CreateUser(user)
+	err := s.dataSource.CreateUser(user)
+	return err
 }

@@ -1,11 +1,13 @@
 package repository
 
 type service struct {
-	datasource Datasource
+	dataSource DataSource
+	jwt        *Jwt
 }
 
-func NewService(datasource Datasource) service {
+func NewService(dataSource DataSource) service {
 	return service{
-		datasource: datasource,
+		dataSource: dataSource,
+		jwt:        NewJwt("secret"),
 	}
 }
