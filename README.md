@@ -1,4 +1,4 @@
-# chat-app
+# :construction: chat-app
 A simple real-time chat app with golang and web-sockets.
 
 Features:
