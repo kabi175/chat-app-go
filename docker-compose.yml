@@ -1,0 +1,24 @@
+version: "3.8"
+services: 
+  redis-messager:
+    image: redis
+    ports:
+      - "6379:6379"
+    expose: 
+      - "6379"
+  messager-service:
+    build:
+      context: ./messager-service
+      target: builder
+    image: messager
+    ports:
+        - "8080:8080"
+    expose: 
+        - "8080"
+    environment:
+        - ENV=dev
+    volumes:
+        - ./messager-service:/service/messager
+    command: reflex -r "\.go$$" -s -- sh -c "go run ./"
+    depends_on:
+        - redis-messager
