@@ -30,5 +30,6 @@ func (h *Handler) Upgrader(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 	user.Conn = conn
 	go h.us.Writer(user)
-	h.us.Listner(user)
+	go h.us.Listner(user)
+	<-user.Wait
 }

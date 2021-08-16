@@ -4,17 +4,17 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/kabi175/chat-app-go/messager/model"
+	"github.com/kabi175/chat-app-go/messager/domain"
 )
 
 type Handler struct {
 	r  *mux.Router
-	us model.UserService
+	us domain.UserService
 }
 
 type HandlerConfig struct {
 	Router *mux.Router
-	Us     model.UserService
+	Us     domain.UserService
 }
 
 func NewHandler(c *HandlerConfig) {

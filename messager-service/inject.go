@@ -15,6 +15,7 @@ func inject() *mux.Router {
 	messageRepository := repository.NewMessageRepository(&repository.MessageRepositoryConfig{
 		Redis: redisClient,
 	})
+
 	statusRepository := repository.NewUserStatusRepository(&repository.UserStatusRepositoryConfig{
 		Redis: redisClient,
 	})
