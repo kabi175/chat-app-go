@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/kabi175/chat-app-go/messager/domain"
@@ -35,6 +36,11 @@ func (s *UserStatusRepository) Listern(user *domain.User, statusChan chan domain
 	sub := s.db.Subscribe(context.TODO(), user.UserName)
 	redisChan := sub.Channel()
 	for msg := range redisChan {
-		statusChan <- *domain.NewUserStatus(msg.Payload)
+		status, err := domain.NewUserStatus(msg.Payload)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		statusChan <- *status
 	}
 }
