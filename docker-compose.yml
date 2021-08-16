@@ -18,7 +18,7 @@ services:
     environment:
         - ENV=dev
     volumes:
-        - ./messager-service:/service/messager
+        - ./messager-service:/src/messager
     command: reflex -r "\.go$$" -s -- sh -c "go run ./"
     depends_on:
         - redis-messager
