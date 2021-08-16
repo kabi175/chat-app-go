@@ -1,28 +1,27 @@
 package service
 
 import (
-	"github.com/go-redis/redis/v8"
-	"github.com/kabi175/chat-app-go/messager/model"
+	"github.com/kabi175/chat-app-go/messager/domain"
 )
 
 type UserStatusService struct {
-	sr model.UserStatusRepository
+	sr domain.UserStatusRepository
 }
 
 type UserStatusServiceConfig struct {
-	UserStatusRepository model.UserStatusRepository
+	UserStatusRepository domain.UserStatusRepository
 }
 
-func NewUserStatusRepository(c *UserStatusServiceConfig) model.UserStatusService {
+func NewUserStatusRepository(c *UserStatusServiceConfig) domain.UserStatusService {
 	return &UserStatusService{
 		sr: c.UserStatusRepository,
 	}
 }
 
-func (ms *UserStatusService) Publish(status *model.UserStatus) error {
+func (ms *UserStatusService) Publish(status *domain.UserStatus) error {
 	return ms.sr.Publish(status)
 }
 
-func (ms *UserStatusService) Listern(user *model.User) *redis.PubSub {
-	return ms.sr.Listern(user)
+func (ms *UserStatusService) Listern(user *domain.User, statusChan chan domain.UserStatus) {
+	go ms.sr.Listern(user, statusChan)
 }

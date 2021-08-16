@@ -1,95 +1,99 @@
 package service
 
 import (
-	"context"
-	"encoding/json"
 	"log"
 
-	"github.com/kabi175/chat-app-go/messager/model"
+	"github.com/gorilla/websocket"
+	"github.com/kabi175/chat-app-go/messager/domain"
 )
 
 type UserService struct {
-	m model.MessageService
-	s model.UserStatusService
+	m domain.MessageService
+	s domain.UserStatusService
 }
 
 type UserServiceConfig struct {
-	MessageService    model.MessageService
-	UserStatusService model.UserStatusService
+	MessageService    domain.MessageService
+	UserStatusService domain.UserStatusService
 }
 
-func NewUserService(c *UserServiceConfig) model.UserService {
+func NewUserService(c *UserServiceConfig) domain.UserService {
 	return &UserService{
 		m: c.MessageService,
 		s: c.UserStatusService,
 	}
 }
 
-func (us *UserService) Listner(user *model.User) {
+func (us *UserService) Listner(user *domain.User) {
+	var userMessage domain.UserMessage
 	for {
-		var message model.UserMessage
-		user.Conn.ReadJSON(&message)
-		switch message.Type {
-		case model.TypeMessage:
-			if message.Message.From == user.UserName {
-				err := us.m.Publish(&message.Message)
-				if err != nil {
-					log.Println(err)
-				}
-			}
-		case model.TypeStatus:
-			if message.Status.UserName == user.UserName {
-				err := us.s.Publish(&message.Status)
-				if err != nil {
-					log.Println(err)
-				}
-			}
-		}
-	}
-}
-
-func (us *UserService) Writer(user *model.User) {
-	userMessageBufferSize := 10
-	userMessageChan := make(chan model.UserMessage, userMessageBufferSize)
-	go func() {
-		for {
-			message, err := us.m.Listern(user)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			userMessageChan <- model.UserMessage{Message: *message}
-		}
-	}()
-	go func() {
-		pubsub := us.s.Listern(user)
-		for {
-			msg, err := pubsub.ReceiveMessage(context.TODO())
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			var status model.UserStatus
-			log.Println(msg.Payload)
-			err = json.Unmarshal([]byte(msg.Payload), &status)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			userMessageChan <- model.UserMessage{Status: status}
-		}
-	}()
-
-	for {
-		userMessage := <-userMessageChan
-		err := user.Conn.WriteJSON(userMessage)
-		if err != nil {
-			log.Println(err)
+		select {
+		case <-user.Wait:
 			return
+		default:
+			err := user.Conn.ReadJSON(&userMessage)
+			if err != nil {
+				if err == websocket.ErrCloseSent {
+					close(user.Wait)
+					return
+				}
+			}
+			switch userMessage.Type {
+			case domain.TypeMessage:
+				userMessage.Message.RecordTime()
+				userMessage = *domain.NewUserMessage(&userMessage.Message)
+				if err = us.m.Publish(&userMessage); err != nil {
+					log.Println(err)
+					continue
+				}
+				ackMessage := domain.NewAckReceived(userMessage.Message.MessageID)
+				userMessage = *domain.NewUserMessage(&ackMessage)
+				if err = us.m.Publish(&userMessage); err != nil {
+					log.Println(err)
+				}
+			case domain.TypeStatus:
+				if err = us.s.Publish(&userMessage.Status); err != nil {
+					log.Println(err)
+				}
+			case domain.TypeAck:
+				userMessage = *domain.NewUserMessage(&userMessage.Ack)
+				if err = us.m.Publish(&userMessage); err != nil {
+					log.Println(err)
+				}
+			}
 		}
 	}
 }
 
-func (us *UserService) Validate(token string) (*model.User, error) {
-	return &model.User{UserName: token}, nil
+func (us *UserService) Writer(user *domain.User) {
+	messageChan := make(chan domain.UserMessage, 5)
+	statusChan := make(chan domain.UserStatus, 1)
+	go us.m.Listern(user, messageChan)
+	go us.s.Listern(user, statusChan)
+	for {
+		select {
+		case <-user.Wait:
+			return
+		case message := <-messageChan:
+			err := user.Conn.WriteJSON(message)
+			if err != nil {
+				if err == websocket.ErrCloseSent {
+					close(user.Wait)
+					return
+				}
+			}
+		case status := <-statusChan:
+			err := user.Conn.WriteJSON(domain.NewUserMessage(&status))
+			if err != nil {
+				if err == websocket.ErrCloseSent {
+					close(user.Wait)
+					return
+				}
+			}
+		}
+	}
+}
+
+func (us *UserService) Validate(token string) (*domain.User, error) {
+	return domain.NewUser(token), nil
 }
