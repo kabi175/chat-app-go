@@ -1,6 +1,6 @@
 FROM golang:alpine as builder
 
-WORKDIR /go/src/app
+WORKDIR /src/messager
 
 # Get Reflex for live reload in dev
 ENV GO111MODULE=on
