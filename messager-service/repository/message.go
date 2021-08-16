@@ -3,9 +3,10 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/kabi175/chat-app-go/messager/model"
+	"github.com/kabi175/chat-app-go/messager/domain"
 )
 
 type MessageRepository struct {
@@ -16,14 +17,22 @@ type MessageRepositoryConfig struct {
 	Redis *redis.Client
 }
 
-func NewMessageRepository(c *MessageRepositoryConfig) model.MessageRepository {
+func NewMessageRepository(c *MessageRepositoryConfig) domain.MessageRepository {
 	return &MessageRepository{
 		db: c.Redis,
 	}
 }
 
-func (m *MessageRepository) Publish(message *model.Message) error {
-	userQueue := message.To
+func (m *MessageRepository) Publish(message *domain.UserMessage) error {
+	var userQueue string
+
+	switch message.Type {
+	case domain.TypeAck:
+		userQueue = message.Ack.To
+	case domain.TypeMessage:
+		userQueue = message.Message.To
+	}
+
 	messageByte, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -32,16 +41,22 @@ func (m *MessageRepository) Publish(message *model.Message) error {
 	return result.Err()
 }
 
-func (m *MessageRepository) Listern(user *model.User) (*model.Message, error) {
-	resultString, err := m.db.BRPop(context.TODO(), 0, user.UserName).Result()
-	if err != nil {
-		return nil, err
+func (m *MessageRepository) Listern(user *domain.User, messageChan chan domain.UserMessage) {
+	for {
+		resultString, err := m.db.BRPop(context.TODO(), 0, user.UserName).Result()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		byteMessage := []byte(resultString[1])
+
+		var message domain.UserMessage
+		err = json.Unmarshal(byteMessage, &message)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		messageChan <- *domain.NewUserMessage(message)
 	}
-	var message model.Message
-	byteMessage := []byte(resultString[1])
-	err = json.Unmarshal(byteMessage, &message)
-	if err != nil {
-		return nil, err
-	}
-	return &message, nil
 }

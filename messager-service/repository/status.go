@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/kabi175/chat-app-go/messager/model"
+	"github.com/kabi175/chat-app-go/messager/domain"
 )
 
 type UserStatusRepository struct {
@@ -16,13 +16,13 @@ type UserStatusRepositoryConfig struct {
 	Redis *redis.Client
 }
 
-func NewUserStatusRepository(c *UserStatusRepositoryConfig) model.UserStatusRepository {
+func NewUserStatusRepository(c *UserStatusRepositoryConfig) domain.UserStatusRepository {
 	return &UserStatusRepository{
 		db: c.Redis,
 	}
 }
 
-func (s *UserStatusRepository) Publish(status *model.UserStatus) error {
+func (s *UserStatusRepository) Publish(status *domain.UserStatus) error {
 	statusByte, err := json.Marshal(status)
 	if err != nil {
 		return err
@@ -31,7 +31,10 @@ func (s *UserStatusRepository) Publish(status *model.UserStatus) error {
 	return nil
 }
 
-func (s *UserStatusRepository) Listern(user *model.User) *redis.PubSub {
+func (s *UserStatusRepository) Listern(user *domain.User, statusChan chan domain.UserStatus) {
 	sub := s.db.Subscribe(context.TODO(), user.UserName)
-	return sub
+	redisChan := sub.Channel()
+	for msg := range redisChan {
+		statusChan <- *domain.NewUserStatus(msg.Payload)
+	}
 }
