@@ -10,6 +10,7 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
 func (h *Handler) Upgrader(w http.ResponseWriter, r *http.Request) {
@@ -30,6 +31,6 @@ func (h *Handler) Upgrader(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 	user.Conn = conn
 	go h.us.Writer(user)
-	go h.us.Listner(user)
-	<-user.Wait
+	h.us.Listner(user)
+	//<-user.Wait
 }
