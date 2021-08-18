@@ -1,6 +1,8 @@
 package service
 
-import "github.com/kabi175/chat-app-go/messager/domain"
+import (
+	"github.com/kabi175/chat-app-go/messager/domain"
+)
 
 type MessageService struct {
 	mr domain.MessageRepository
