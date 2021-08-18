@@ -13,7 +13,6 @@ type User struct {
 func NewUser(userName string) *User {
 	return &User{
 		UserName: userName,
-		Conn:     nil,
 		Wait:     make(chan struct{}),
 	}
 }

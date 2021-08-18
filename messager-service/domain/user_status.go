@@ -2,12 +2,7 @@ package domain
 
 import (
 	"encoding/json"
-)
-
-const (
-	TypeMessage = iota
-	TypeStatus
-	TypeAck
+	"fmt"
 )
 
 type UserStatus struct {
@@ -25,6 +20,7 @@ func NewUserStatus(obj interface{}) (*UserStatus, error) {
 		var status UserStatus
 		err := json.Unmarshal([]byte(o), &status)
 		return &status, err
+	default:
+		panic(fmt.Errorf("unknnown obj of type %T in NewUserStatus", obj))
 	}
-	return nil, nil
 }

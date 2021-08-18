@@ -1,6 +1,6 @@
 package domain
 
-import "log"
+import "fmt"
 
 type UserMessage struct {
 	Type    int8       `json:"type"`
@@ -27,7 +27,6 @@ func NewUserMessage(obj interface{}) *UserMessage {
 			Ack:  *o,
 		}
 	default:
-		log.Fatalf("unknown type %T in NewUserMessage\n", obj)
+		panic(fmt.Errorf("unknown type %T in NewUserMessage\n", obj))
 	}
-	return nil
 }

@@ -2,7 +2,7 @@ package domain
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 )
 
 type AckMessage struct {
@@ -12,10 +12,6 @@ type AckMessage struct {
 	MessageID string `json:"messageID"`
 	Status    string `json:"status"`
 	Error     string `json:"error"`
-}
-
-func (message *AckMessage) Bytes() ([]byte, error) {
-	return json.Marshal(message)
 }
 
 func (AckMessage) NewAckMessage(obj interface{}) (*AckMessage, error) {
@@ -32,39 +28,47 @@ func (AckMessage) NewAckMessage(obj interface{}) (*AckMessage, error) {
 	case AckMessage:
 		return &o, nil
 	default:
-		return nil, errors.New("Unknown type obj")
+		panic(fmt.Errorf("Unknown obj of type %T in NewAckMessage", obj))
 	}
 }
 
-func NewError(messageID string, err error) *AckMessage {
+func NewError(message Message, err error) *AckMessage {
 	return &AckMessage{
+		To:        message.To,
+		From:      message.From,
 		Type:      TypeAck,
-		MessageID: messageID,
+		MessageID: message.MessageID,
 		Status:    "failed",
 		Error:     err.Error(),
 	}
 }
 
-func NewAckRead(messageid string) *AckMessage {
+func NewAckRead(message Message) *AckMessage {
 	return &AckMessage{
+		To:        message.To,
+		From:      message.From,
 		Type:      TypeAck,
-		MessageID: messageid,
+		MessageID: message.MessageID,
 		Status:    "read",
 	}
 }
 
-func NewAckDelivered(messageid string) *AckMessage {
+func NewAckDelivered(message Message) *AckMessage {
 	return &AckMessage{
+		To:        message.To,
+		From:      message.From,
 		Type:      TypeAck,
-		MessageID: messageid,
+		MessageID: message.MessageID,
 		Status:    "delivered",
 	}
 }
 
-func NewAckReceived(messageid string) *AckMessage {
+func NewAckReceived(message Message) *AckMessage {
 	return &AckMessage{
+		To:        message.To,
+		From:      message.From,
 		Type:      TypeAck,
-		MessageID: messageid,
+		MessageID: message.MessageID,
 		Status:    "received",
 	}
 }
