@@ -28,7 +28,7 @@ func (m *MessageRepository) Publish(message *domain.UserMessage) error {
 
 	switch message.Type {
 	case domain.TypeAck:
-		userQueue = message.Ack.To
+		userQueue = message.Ack.From
 	case domain.TypeMessage:
 		userQueue = message.Message.To
 	}
@@ -43,6 +43,11 @@ func (m *MessageRepository) Publish(message *domain.UserMessage) error {
 
 func (m *MessageRepository) Listern(user *domain.User, messageChan chan domain.UserMessage) {
 	for {
+		select {
+		case <-user.Wait:
+			return
+		default:
+		}
 		resultString, err := m.db.BRPop(context.TODO(), 0, user.UserName).Result()
 		if err != nil {
 			log.Println(err)
@@ -50,13 +55,12 @@ func (m *MessageRepository) Listern(user *domain.User, messageChan chan domain.U
 		}
 
 		byteMessage := []byte(resultString[1])
-
 		var message domain.UserMessage
 		err = json.Unmarshal(byteMessage, &message)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
-		messageChan <- *domain.NewUserMessage(message)
+		messageChan <- message
 	}
 }
