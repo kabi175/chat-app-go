@@ -1,7 +1,10 @@
 package domain
 
 import (
+	"encoding/json"
 	"time"
+
+	"github.com/kabi175/chat-app-go/messager/domain/apperrors"
 )
 
 type Message struct {
@@ -17,4 +20,11 @@ type Message struct {
 func (m *Message) RecordTime() *Message {
 	m.CreatedAt = time.Now().Unix()
 	return m
+}
+func (u *Message) String() (string, error) {
+	str, err := json.Marshal(u)
+	if err != nil {
+		return "", apperrors.NewInternalServerError(err.Error())
+	}
+	return string(str), nil
 }
