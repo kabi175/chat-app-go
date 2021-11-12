@@ -6,12 +6,15 @@ import (
 
 type Message struct {
 	MessageID string `json:"messageID"`
-	From      string `json:"from"`
-	To        string `json:"to"`
-	Data      string `json:"data"`
-	Time      int64  `json:"time"`
+	From      uint   `json:"from"`
+	To        uint   `json:"to"`
+	Text      string `json:"text"`
+	Seen      bool   `json:"seen"`
+	Received  bool   `json:"received"`
+	CreatedAt int64  `json:"createdAt"`
 }
 
-func (m *Message) RecordTime() {
-	m.Time = time.Now().Unix()
+func (m *Message) RecordTime() *Message {
+	m.CreatedAt = time.Now().Unix()
+	return m
 }
