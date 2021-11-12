@@ -1,5 +1,5 @@
 # :construction: chat-app
-A simple real-time chat app with golang and web-sockets.
+A real-time chat app built with golang, web-sockets and Redis.
 
 Features:
   * Real-time messaging service
