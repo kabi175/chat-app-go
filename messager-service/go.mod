@@ -10,5 +10,8 @@ require (
 	github.com/posener/wstest v1.2.0 // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
+	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gorm.io/driver/postgres v1.2.1 // indirect
+	gorm.io/gorm v1.22.2 // indirect
 )
