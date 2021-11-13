@@ -3,12 +3,14 @@ package domain
 type UserService interface {
 	LogIn(*User) (string, error)
 	SignUp(*User) (*User, error)
+	GetByID(uint) (*User, error)
+	GetByEmail(string) (*User, error)
 	Delete(*User) error
 }
 
 type TokenService interface {
 	GenerateToken(*User) (string, error)
-	ValidateToken(string) (*User, error)
+	DecodeToken(string) (*User, error)
 }
 
 type MessageService interface {
