@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/kabi175/chat-app-go/messager/domain"
@@ -21,7 +22,7 @@ func (r *RedisMessageRepo) Producer(message *domain.Message, ctx context.Context
 	if err != nil {
 		return err
 	}
-	r.db.RPush(ctx, string(message.To), value)
+	r.db.RPush(ctx, strconv.Itoa(int(message.To)), value)
 	return nil
 }
 
@@ -43,7 +44,7 @@ func (r *RedisMessageRepo) Consumer(user *domain.User, ctx context.Context) (<-c
 			default:
 			}
 
-			result, err := r.db.BLPop(ctx, 0, string(userID)).Result()
+			result, err := r.db.BLPop(ctx, 0, strconv.FormatUint(uint64(userID), 10)).Result()
 			if err != nil {
 				return
 			}
