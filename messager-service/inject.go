@@ -1,42 +1,34 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/kabi175/chat-app-go/messager/handler"
+	"log"
+
+	"github.com/gin-gonic/gin"
+	"github.com/kabi175/chat-app-go/messager/api"
+	"github.com/kabi175/chat-app-go/messager/controller"
 	"github.com/kabi175/chat-app-go/messager/repository"
 	"github.com/kabi175/chat-app-go/messager/service"
 )
 
-func inject() *mux.Router {
+func inject() *gin.Engine {
 
-	router := mux.NewRouter()
-	redisClient := redisDataSource()
+	postgresConn, err := NewPostgresClient()
 
-	messageRepository := repository.NewMessageRepository(&repository.MessageRepositoryConfig{
-		Redis: redisClient,
-	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	statusRepository := repository.NewUserStatusRepository(&repository.UserStatusRepositoryConfig{
-		Redis: redisClient,
-	})
+	userRepo, err := repository.NewUserRepo(postgresConn)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	messageService := service.NewMessageRepository(&service.MessageServiceConfig{
-		MessageRepository: messageRepository,
-	})
+	tokenService := service.NewJwtTokenService()
 
-	statusService := service.NewUserStatusRepository(&service.UserStatusServiceConfig{
-		UserStatusRepository: statusRepository,
-	})
+	userService := service.NewDefaultUserService(userRepo, tokenService)
+	userController := controller.NewGinUserController(userService, tokenService)
 
-	userService := service.NewUserService(&service.UserServiceConfig{
-		MessageService:    messageService,
-		UserStatusService: statusService,
-	})
+	api := api.NewRouter(userController, tokenService)
 
-	handler.NewHandler(&handler.HandlerConfig{
-		Router: router,
-		Us:     userService,
-	})
-
-	return router
+	return api.Router
 }

@@ -14,7 +14,6 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalln(err)
 	}
-
 }
 
 func main() {
