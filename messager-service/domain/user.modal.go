@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 
 	"github.com/kabi175/chat-app-go/messager/domain/apperrors"
-	"gorm.io/gorm"
 )
 
 type User struct {
-	gorm.Model
 	ID          uint   `json:"id" gorm:"primarykey"`
 	DisplayName string `json:"displayName" gorm:"not null"`
 	Password    string `json:"password" gorm:"not null"`
