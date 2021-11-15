@@ -5,18 +5,11 @@ import (
 
 	"github.com/kabi175/chat-app-go/messager/domain"
 	"github.com/kabi175/chat-app-go/messager/domain/apperrors"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 type PostgresUserRepo struct {
 	db *gorm.DB
-}
-
-func DB() (*gorm.DB, error) {
-	dsn := "host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	return db, err
 }
 
 func NewUserRepo(db *gorm.DB) (domain.UserRepo, error) {
@@ -51,7 +44,7 @@ func (u *PostgresUserRepo) GetByEmail(email string) (*domain.User, error) {
 }
 
 func (u *PostgresUserRepo) DeleteByID(id uint) error {
-	result := u.db.Where(&domain.User{ID: id}).Delete(&domain.User{})
+	result := u.db.Delete(&domain.User{ID: id})
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return apperrors.NewNotFoundError("user not found")
