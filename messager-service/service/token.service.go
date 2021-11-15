@@ -19,7 +19,7 @@ func NewJwtTokenService() domain.TokenService {
 func (JwtTokenService) GenerateToken(user *domain.User) (string, error) {
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
-	atClaims["user_id"] = user.ID
+	atClaims["userID"] = user.ID
 	atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	token, err := at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
@@ -41,8 +41,15 @@ func (JwtTokenService) DecodeToken(tokenString string) (*domain.User, error) {
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
+		userID, ok := claims["userID"].(float64)
+		if !ok {
+			return nil, apperrors.NewInternalServerError("cannot cast claims['userID'] to float64")
+		}
+		if err != nil {
+			return nil, apperrors.NewInternalServerError(err.Error())
+		}
 		user := &domain.User{
-			ID: claims["user_id"].(uint),
+			ID: uint(userID),
 		}
 		return user, nil
 	}
