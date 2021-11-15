@@ -1,4 +1,4 @@
-FROM golang:alpine as builder
+FROM golang:alpine
 
 WORKDIR /src/messager
 
@@ -6,8 +6,8 @@ WORKDIR /src/messager
 ENV GO111MODULE=on
 RUN go get github.com/cespare/reflex
 
-COPY go.mod .
-COPY go.sum .
+COPY go.mod ./
+COPY go.sum ./
 
 RUN go mod download
 
@@ -15,15 +15,8 @@ COPY .env .
 
 COPY . .
 
-RUN go build -o ./run .
-
-FROM alpine:3.14
-RUN apk --no-cache add ca-certificates
-WORKDIR /root/
-
-#Copy executable from builder
-COPY --from=builder /go/src/app/run .
+RUN go build -o ./app
 
 EXPOSE 8080
-CMD ["./run"]https://meet.google.com/sfy-jfpf-hvi
 
+CMD ["./app"]
