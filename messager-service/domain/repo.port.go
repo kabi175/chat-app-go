@@ -4,7 +4,7 @@ import "context"
 
 type MessageRepo interface {
 	Producer(*Message, context.Context) error
-	Consumer(*User, context.Context) (<-chan Message, context.Context, error)
+	Consumer(*User, context.Context) (<-chan MessageChan, error)
 }
 
 type UserStatusRepository interface {
