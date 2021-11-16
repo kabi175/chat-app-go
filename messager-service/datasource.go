@@ -22,7 +22,7 @@ func NewPostgresClient() (*gorm.DB, error) {
 	return db, err
 }
 
-func NewRedisDataSource() *redis.Client {
+func NewRedisClient() *redis.Client {
 
 	REDIS_HOST := os.Getenv("REDIS_HOST")
 	REDIS_PASSWORD := os.Getenv("REDIS_PASSWORD")
