@@ -26,16 +26,19 @@ func (r *RedisMessageRepo) Producer(message *domain.Message, ctx context.Context
 	return nil
 }
 
-func (r *RedisMessageRepo) Consumer(user *domain.User, ctx context.Context) (<-chan domain.Message, context.Context, error) {
-	ch := make(chan domain.Message, 5)
-	childCtx, cancel := context.WithCancel(context.Background())
+func (r *RedisMessageRepo) Consumer(user *domain.User, ctx context.Context) (<-chan domain.MessageChan, error) {
+	ch := make(chan domain.MessageChan, 5)
 
+	handleError := func(err error) {
+		ch <- domain.MessageChan{Error: err}
+	}
 	go func(userID uint, ctx context.Context) {
 
 		defer func() {
-			cancel()
 			close(ch)
 		}()
+
+		message := domain.Message{}
 
 		for {
 			select {
@@ -46,16 +49,17 @@ func (r *RedisMessageRepo) Consumer(user *domain.User, ctx context.Context) (<-c
 
 			result, err := r.db.BLPop(ctx, 0, strconv.FormatUint(uint64(userID), 10)).Result()
 			if err != nil {
+				handleError(err)
 				return
 			}
-			message := domain.Message{}
 			err = json.Unmarshal([]byte(result[0]), &message)
 			if err != nil {
+				handleError(err)
 				return
 			}
-			ch <- message
+			ch <- domain.MessageChan{Message: message}
 		}
 	}(user.ID, ctx)
 
-	return ch, childCtx, nil
+	return ch, nil
 }
