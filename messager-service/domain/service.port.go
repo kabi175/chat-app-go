@@ -1,5 +1,7 @@
 package domain
 
+import "context"
+
 type UserService interface {
 	LogIn(*User) (string, error)
 	SignUp(*User) (*User, error)
@@ -14,8 +16,8 @@ type TokenService interface {
 }
 
 type MessageService interface {
-	PostMessage(*Message) error
-	GetMessage() error
+	PublishMessage() func(*Message) error
+	ConsumeMessage(*User, context.Context) (func() <-chan MessageChan, error)
 }
 
 type UserStatusService interface {
