@@ -1,6 +1,8 @@
 package api
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,6 +24,7 @@ func (a *API) Protect() gin.HandlerFunc {
 			return
 		}
 		c.Set("userID", user.ID)
+		c.Header("userID", strconv.FormatUint(uint64(user.ID), 10))
 		c.Next()
 	}
 }

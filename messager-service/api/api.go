@@ -6,17 +6,20 @@ import (
 )
 
 type API struct {
-	user   domain.UserController
-	auth   domain.TokenService
-	Router *gin.Engine
+	user    domain.UserController
+	auth    domain.TokenService
+	message domain.MessageController
+	Router  *gin.Engine
 }
 
-func NewRouter(user domain.UserController, auth domain.TokenService) *API {
+func NewRouter(user domain.UserController, auth domain.TokenService, message domain.MessageController) *API {
 	api := &API{
-		user:   user,
-		auth:   auth,
-		Router: gin.Default(),
+		user:    user,
+		auth:    auth,
+		message: message,
+		Router:  gin.Default(),
 	}
 	api.RegisterUserAPI()
+	api.RegisterChatAPI()
 	return api
 }
