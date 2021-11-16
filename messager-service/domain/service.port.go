@@ -19,8 +19,3 @@ type MessageService interface {
 	PublishMessage() func(*Message) error
 	ConsumeMessage(*User, context.Context) (func() <-chan MessageChan, error)
 }
-
-type UserStatusService interface {
-	Publish(*UserStatus) error
-	Listern(*User, chan UserStatus)
-}
