@@ -13,7 +13,6 @@ import (
 func inject() *gin.Engine {
 
 	postgresConn, err := NewPostgresClient()
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,7 +27,11 @@ func inject() *gin.Engine {
 	userService := service.NewDefaultUserService(userRepo, tokenService)
 	userController := controller.NewGinUserController(userService, tokenService)
 
-	api := api.NewRouter(userController, tokenService)
+	redisConn := NewRedisClient()
+	messageRepo := repository.NewResidMessageRepo(redisConn)
+	messageService := service.NewDefaultMessageService(messageRepo)
+	messageController := controller.NewGorillaMessageController(messageService)
+	api := api.NewRouter(userController, tokenService, messageController)
 
 	return api.Router
 }
