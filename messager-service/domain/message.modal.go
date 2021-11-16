@@ -28,3 +28,8 @@ func (u *Message) String() (string, error) {
 	}
 	return string(str), nil
 }
+
+type MessageChan struct {
+	Message Message
+	Error   error
+}
